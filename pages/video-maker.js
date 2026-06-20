@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 
 export default function VideoMaker() {
   const canvasRef = useRef(null)
@@ -28,7 +28,7 @@ export default function VideoMaker() {
       if (data.product) {
         setProduct(data.product)
       } else {
-        alert('ดึงข้อมูลไม่สำเร็จครับ ลองใหม่อีกครั้ง')
+        alert('ดึงข้อมูลไม่สำเร็จครับ')
       }
     } catch (e) {
       alert('เกิดข้อผิดพลาดครับ')
@@ -61,12 +61,8 @@ export default function VideoMaker() {
   function drawFrame(ctx, img, lines, frameIndex, totalFrames) {
     const w = 1080
     const h = 1920
-
-    // Background
     ctx.fillStyle = '#1a1a1a'
     ctx.fillRect(0, 0, w, h)
-
-    // Product image
     if (img) {
       const imgSize = 900
       const imgX = (w - imgSize) / 2
@@ -78,60 +74,45 @@ export default function VideoMaker() {
       ctx.drawImage(img, imgX, imgY, imgSize, imgSize)
       ctx.restore()
     }
-
-    // Overlay gradient
     const grad = ctx.createLinearGradient(0, 1000, 0, h)
     grad.addColorStop(0, 'rgba(26,26,26,0)')
     grad.addColorStop(0.4, 'rgba(26,26,26,0.95)')
     grad.addColorStop(1, 'rgba(26,26,26,1)')
     ctx.fillStyle = grad
     ctx.fillRect(0, 1000, w, h - 1000)
-
-    // Price badge
-    if (product?.price) {
+    if (product && product.price) {
       ctx.fillStyle = '#EE4D2D'
       ctx.beginPath()
       ctx.roundRect(60, 1100, 280, 70, 12)
       ctx.fill()
       ctx.fillStyle = 'white'
       ctx.font = 'bold 38px sans-serif'
-      ctx.fillText(`฿${Number(product.price).toLocaleString()}`, 80, 1148)
+      ctx.fillText('฿' + Number(product.price).toLocaleString(), 80, 1148)
     }
-
-    // Subtitle
     const progress = frameIndex / totalFrames
     const lineIndex = Math.floor(progress * lines.length)
     const currentLine = lines[Math.min(lineIndex, lines.length - 1)] || ''
-
     if (currentLine) {
       ctx.fillStyle = 'rgba(0,0,0,0.6)'
       ctx.beginPath()
       ctx.roundRect(60, 1580, w - 120, 100, 12)
       ctx.fill()
-
       ctx.fillStyle = '#FFFF00'
       ctx.font = 'bold 44px sans-serif'
       ctx.textAlign = 'center'
       ctx.fillText(currentLine, w / 2, 1643)
       ctx.textAlign = 'left'
     }
-
-    // Product name
     ctx.fillStyle = 'white'
     ctx.font = 'bold 48px sans-serif'
     ctx.textAlign = 'center'
-    const nameWords = (product?.name || '').substring(0, 60)
-    ctx.fillText(nameWords, w / 2, 1750)
+    ctx.fillText((product && product.name ? product.name : '').substring(0, 60), w / 2, 1750)
     ctx.textAlign = 'left'
-
-    // Shopee logo text
     ctx.fillStyle = '#EE4D2D'
     ctx.font = 'bold 36px sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('🛒 Shopee', w / 2, 1860)
+    ctx.fillText('Shopee', w / 2, 1860)
     ctx.textAlign = 'left'
-
-    // Progress bar
     ctx.fillStyle = 'rgba(255,255,255,0.2)'
     ctx.fillRect(0, h - 8, w, 8)
     ctx.fillStyle = '#EE4D2D'
@@ -142,14 +123,11 @@ export default function VideoMaker() {
     if (!product || !script) return
     setRendering(true)
     setVideoUrl(null)
-
     try {
       const canvas = canvasRef.current
       const ctx = canvas.getContext('2d')
       canvas.width = 1080
       canvas.height = 1920
-
-      // โหลดรูปสินค้า
       let img = null
       if (product.image_url) {
         img = await new Promise((resolve) => {
@@ -157,11 +135,9 @@ export default function VideoMaker() {
           i.crossOrigin = 'anonymous'
           i.onload = () => resolve(i)
           i.onerror = () => resolve(null)
-          i.src = `/api/proxy-image?url=${encodeURIComponent(product.image_url)}`
+          i.src = '/api/proxy-image?url=' + encodeURIComponent(product.image_url)
         })
       }
-
-      // แบ่ง script เป็นบรรทัด subtitle
       const words = script.split(' ')
       const lines = []
       let line = ''
@@ -174,22 +150,18 @@ export default function VideoMaker() {
         }
       }
       if (line) lines.push(line.trim())
-
       const fps = 30
       const duration = 35
       const totalFrames = fps * duration
       const chunks = []
-
       const stream = canvas.captureStream(fps)
       const recorder = new MediaRecorder(stream, {
         mimeType: 'video/webm;codecs=vp8',
         videoBitsPerSecond: 2500000,
       })
-
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunks.push(e.data)
       }
-
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'video/webm' })
         const url = URL.createObjectURL(blob)
@@ -197,19 +169,15 @@ export default function VideoMaker() {
         setStep(3)
         setRendering(false)
       }
-
       recorder.start()
-
       for (let f = 0; f < totalFrames; f++) {
         drawFrame(ctx, img, lines, f, totalFrames)
         setCurrentFrame(f)
         await new Promise((r) => setTimeout(r, 1000 / fps))
       }
-
       recorder.stop()
     } catch (e) {
-      console.error(e)
-      alert('เกิดข้อผิดพลาดในการสร้างวิดีโอครับ: ' + e.message)
+      alert('เกิดข้อผิดพลาด: ' + e.message)
       setRendering(false)
     }
   }
@@ -227,7 +195,6 @@ export default function VideoMaker() {
       <a href="/" style={{ fontSize: 13, color: '#888', textDecoration: 'none' }}>← กลับหน้าหลัก</a>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginTop: 8, marginBottom: 24 }}>สร้างวิดีโอ</h1>
 
-      {/* Steps */}
       <div style={{ display: 'flex', marginBottom: 32 }}>
         {['ใส่ลิงก์สินค้า', 'สร้างวิดีโอ', 'ดาวน์โหลด'].map((s, i) => (
           <div key={i} style={{ flex: 1, textAlign: 'center' }}>
@@ -245,7 +212,6 @@ export default function VideoMaker() {
         ))}
       </div>
 
-      {/* Step 1 */}
       {step === 1 && (
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>วางลิงก์สินค้า Shopee</h2>
@@ -275,7 +241,6 @@ export default function VideoMaker() {
                   <p style={{ color: '#EE4D2D', fontWeight: 700, fontSize: 16 }}>฿{Number(product.price).toLocaleString()}</p>
                 </div>
               </div>
-
               <div style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Script (แก้ไขได้):</p>
                 <textarea
@@ -286,7 +251,6 @@ export default function VideoMaker() {
                   style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, lineHeight: 1.6, resize: 'vertical' }}
                 />
               </div>
-
               <button
                 onClick={generateScript}
                 disabled={generating}
@@ -294,21 +258,19 @@ export default function VideoMaker() {
               >
                 {generating ? 'AI กำลังเขียน...' : '✨ สร้าง Script อัตโนมัติ'}
               </button>
-
               {script && (
                 <button
                   onClick={renderVideo}
                   disabled={rendering}
                   style={{ background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 15 }}
                 >
-                  {rendering ? `กำลังสร้างวิดีโอ... ${progress}%` : '🎬 สร้างวิดีโอ 35 วิ'}
+                  {rendering ? 'กำลังสร้างวิดีโอ... ' + progress + '%' : '🎬 สร้างวิดีโอ 35 วิ'}
                 </button>
               )}
-
               {rendering && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ background: '#f0f0f0', borderRadius: 8, height: 12, overflow: 'hidden' }}>
-                    <div style={{ background: '#EE4D2D', height: '100%', width: `${progress}%`, transition: 'width 0.3s' }} />
+                    <div style={{ background: '#EE4D2D', height: '100%', width: progress + '%', transition: 'width 0.3s' }} />
                   </div>
                   <p style={{ fontSize: 12, color: '#888', marginTop: 6, textAlign: 'center' }}>
                     กรุณารอสักครู่ อย่าปิดหน้าต่างครับ ({progress}%)
@@ -320,11 +282,10 @@ export default function VideoMaker() {
         </div>
       )}
 
-      {/* Step 3: ดาวน์โหลด */}
       {step === 3 && videoUrl && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="card" style={{ textAlign: 'center' }}>
-            <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>🎉 วิดีโอพร้อมแล้วครับ!</p>
+            <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>วิดีโอพร้อมแล้วครับ!</p>
             <video
               src={videoUrl}
               controls
@@ -335,7 +296,7 @@ export default function VideoMaker() {
               download="shopee-affiliate-video.webm"
               style={{ display: 'block', background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 15, marginBottom: 8 }}
             >
-              ⬇️ ดาวน์โหลดวิดีโอ
+              ดาวน์โหลดวิดีโอ
             </a>
             <button
               onClick={() => { setStep(1); setVideoUrl(null); setProduct(null); setScript(''); setShopeeUrl('') }}
@@ -347,9 +308,12 @@ export default function VideoMaker() {
 
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 600 }}>Caption สำหรับโพสต์</h2>
-              <button onClick={() => copyText(caption, 'caption')} style={{ background: copied === 'caption' ? '#e8f5e9' : '#f5f5f5', color: copied === 'caption' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-                {copied === 'caption' ? '✅ Copied!' : 'Copy'}
+              <h2 style={{ fontSize: 15, fontWeight: 600 }}>Caption</h2>
+              <button
+                onClick={() => copyText(caption, 'caption')}
+                style={{ background: copied === 'caption' ? '#e8f5e9' : '#f5f5f5', color: copied === 'caption' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
+              >
+                {copied === 'caption' ? 'Copied!' : 'Copy'}
               </button>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: '#444' }}>{caption}</p>
@@ -358,18 +322,21 @@ export default function VideoMaker() {
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600 }}>Hashtags</h2>
-              <button onClick={() => copyText(hashtags, 'hashtags')} style={{ background: copied === 'hashtags' ? '#e8f5e9' : '#f5f5f5', color: copied === 'hashtags' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-                {copied === 'hashtags' ? '✅ Copied!' : 'Copy'}
+              <button
+                onClick={() => copyText(hashtags, 'hashtags')}
+                style={{ background: copied === 'hashtags' ? '#e8f5e9' : '#f5f5f5', color: copied === 'hashtags' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
+              >
+                {copied === 'hashtags' ? 'Copied!' : 'Copy'}
               </button>
             </div>
             <p style={{ fontSize: 13, color: '#EE4D2D', lineHeight: 1.7 }}>{hashtags}</p>
           </div>
 
           <div className="card" style={{ background: '#fff8f7', border: '1px solid #ffd5cc' }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>📱 วิธีโพสต์ใน Shopee Video Feed</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>วิธีโพสต์ใน Shopee Video Feed</h2>
             <ol style={{ fontSize: 13, color: '#555', lineHeight: 2, paddingLeft: 20 }}>
               <li>ดาวน์โหลดวิดีโอลงมือถือ</li>
-              <li>เปิดแอพ Shopee → กด "ฉัน" → "วิดีโอของฉัน"</li>
+              <li>เปิดแอพ Shopee กด "ฉัน" แล้วกด "วิดีโอของฉัน"</li>
               <li>กด "+" อัพโหลดวิดีโอ</li>
               <li>วาง Caption และ Hashtag ที่ Copy ไว้</li>
               <li>กด "เผยแพร่"</li>
@@ -378,7 +345,6 @@ export default function VideoMaker() {
         </div>
       )}
 
-      {/* Canvas สำหรับ render (ซ่อน) */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   )
