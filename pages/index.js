@@ -71,8 +71,8 @@ export default function Home() {
           <a href="/trending" style={{ background: '#EE4D2D', color: 'white', padding: '8px 16px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
             สินค้า Trending
           </a>
-          <a href="/create" style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-            สร้างคลิป
+          <a href="/video-maker" style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+  🎬 สร้างวิดีโอ
           </a>
         </div>
       </div>
