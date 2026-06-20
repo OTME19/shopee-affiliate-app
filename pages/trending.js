@@ -105,7 +105,7 @@ export default function Trending() {
               </div>
               <p style={{ fontSize: 12, color: '#888' }}>ขายแล้ว {p.sales_count?.toLocaleString()} ชิ้น</p>
               
-                href={`/create?product_id=${p.id}`}
+                href={'/create?product_id=' + p.id}
                 style={{ background: '#EE4D2D', color: 'white', padding: '8px', borderRadius: 8, fontSize: 13, textDecoration: 'none', textAlign: 'center', fontWeight: 600, marginTop: 'auto' }}
               >
                 สร้างคลิป
