@@ -192,7 +192,7 @@ export default function VideoMaker() {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
-      <a href="/" style={{ fontSize: 13, color: '#888', textDecoration: 'none' }}>← กลับหน้าหลัก</a>
+      <a href="/" style={{ fontSize: 13, color: '#888', textDecoration: 'none' }}>กลับหน้าหลัก</a>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginTop: 8, marginBottom: 24 }}>สร้างวิดีโอ</h1>
 
       <div style={{ display: 'flex', marginBottom: 32 }}>
@@ -238,7 +238,7 @@ export default function VideoMaker() {
                 )}
                 <div>
                   <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{product.name}</p>
-                  <p style={{ color: '#EE4D2D', fontWeight: 700, fontSize: 16 }}>฿{Number(product.price).toLocaleString()}</p>
+                  <p style={{ color: '#EE4D2D', fontWeight: 700, fontSize: 16 }}>{'฿' + Number(product.price).toLocaleString()}</p>
                 </div>
               </div>
               <div style={{ marginBottom: 12 }}>
@@ -246,7 +246,7 @@ export default function VideoMaker() {
                 <textarea
                   value={script}
                   onChange={(e) => setScript(e.target.value)}
-                  placeholder="กด 'สร้าง Script อัตโนมัติ' หรือพิมพ์เองได้เลยครับ"
+                  placeholder="กด สร้าง Script อัตโนมัติ หรือพิมพ์เองได้เลยครับ"
                   rows={5}
                   style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, lineHeight: 1.6, resize: 'vertical' }}
                 />
@@ -256,7 +256,7 @@ export default function VideoMaker() {
                 disabled={generating}
                 style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, marginBottom: 8, width: '100%' }}
               >
-                {generating ? 'AI กำลังเขียน...' : '✨ สร้าง Script อัตโนมัติ'}
+                {generating ? 'AI กำลังเขียน...' : 'สร้าง Script อัตโนมัติ'}
               </button>
               {script && (
                 <button
@@ -264,16 +264,16 @@ export default function VideoMaker() {
                   disabled={rendering}
                   style={{ background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 15 }}
                 >
-                  {rendering ? 'กำลังสร้างวิดีโอ... ' + progress + '%' : '🎬 สร้างวิดีโอ 35 วิ'}
+                  {rendering ? ('กำลังสร้างวิดีโอ... ' + progress + '%') : 'สร้างวิดีโอ 35 วิ'}
                 </button>
               )}
               {rendering && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ background: '#f0f0f0', borderRadius: 8, height: 12, overflow: 'hidden' }}>
-                    <div style={{ background: '#EE4D2D', height: '100%', width: progress + '%', transition: 'width 0.3s' }} />
+                    <div style={{ background: '#EE4D2D', height: '100%', width: (progress + '%'), transition: 'width 0.3s' }} />
                   </div>
                   <p style={{ fontSize: 12, color: '#888', marginTop: 6, textAlign: 'center' }}>
-                    กรุณารอสักครู่ อย่าปิดหน้าต่างครับ ({progress}%)
+                    {'กรุณารอสักครู่ อย่าปิดหน้าต่างครับ (' + progress + '%)'}
                   </p>
                 </div>
               )}
@@ -309,10 +309,7 @@ export default function VideoMaker() {
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600 }}>Caption</h2>
-              <button
-                onClick={() => copyText(caption, 'caption')}
-                style={{ background: copied === 'caption' ? '#e8f5e9' : '#f5f5f5', color: copied === 'caption' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
-              >
+              <button onClick={() => copyText(caption, 'caption')} style={{ background: copied === 'caption' ? '#e8f5e9' : '#f5f5f5', color: copied === 'caption' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
                 {copied === 'caption' ? 'Copied!' : 'Copy'}
               </button>
             </div>
@@ -322,10 +319,7 @@ export default function VideoMaker() {
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600 }}>Hashtags</h2>
-              <button
-                onClick={() => copyText(hashtags, 'hashtags')}
-                style={{ background: copied === 'hashtags' ? '#e8f5e9' : '#f5f5f5', color: copied === 'hashtags' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
-              >
+              <button onClick={() => copyText(hashtags, 'hashtags')} style={{ background: copied === 'hashtags' ? '#e8f5e9' : '#f5f5f5', color: copied === 'hashtags' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
                 {copied === 'hashtags' ? 'Copied!' : 'Copy'}
               </button>
             </div>
@@ -336,10 +330,10 @@ export default function VideoMaker() {
             <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>วิธีโพสต์ใน Shopee Video Feed</h2>
             <ol style={{ fontSize: 13, color: '#555', lineHeight: 2, paddingLeft: 20 }}>
               <li>ดาวน์โหลดวิดีโอลงมือถือ</li>
-              <li>เปิดแอพ Shopee กด "ฉัน" แล้วกด "วิดีโอของฉัน"</li>
-              <li>กด "+" อัพโหลดวิดีโอ</li>
+              <li>เปิดแอพ Shopee กด ฉัน แล้วกด วิดีโอของฉัน</li>
+              <li>กด + อัพโหลดวิดีโอ</li>
               <li>วาง Caption และ Hashtag ที่ Copy ไว้</li>
-              <li>กด "เผยแพร่"</li>
+              <li>กด เผยแพร่</li>
             </ol>
           </div>
         </div>
