@@ -1,101 +1,75 @@
-import crypto from 'crypto'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
-
-function generateSignature(appId, secret, timestamp) {
-  const baseString = `${appId}${timestamp}`
-  return crypto.createHmac('sha256', secret).update(baseString).digest('hex')
-}
-
-function extractItemId(url) {
-  const patterns = [
-    /i\.(\d+)\.(\d+)/,
-    /product\/(\d+)\/(\d+)/,
-    /-i\.(\d+)\.(\d+)/,
-  ]
-  for (const pattern of patterns) {
-    const match = url.match(pattern)
-    if (match) return { shopId: match[1], itemId: match[2] }
-  }
-  return null
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { url } = req.body
   if (!url) return res.status(400).json({ error: 'No URL provided' })
 
-  const appId = process.env.SHOPEE_APP_ID
-  const secret = process.env.SHOPEE_SECRET_KEY
-
   try {
-    const ids = extractItemId(url)
-    if (!ids) return res.status(400).json({ error: 'ลิงก์ไม่ถูกต้องครับ' })
-
-    const timestamp = Math.floor(Date.now() / 1000)
-    const signature = generateSignature(appId, secret, timestamp)
-
-    const query = `
-      query {
-        getProductDetail(shopId: "${ids.shopId}", itemId: "${ids.itemId}") {
-          itemId
-          itemName
-          imageUrl
-          priceMin
-          commissionRate
-          sales
-          shopName
-          affiliateLink
-          productLink
-        }
-      }
-    `
-
-    const response = await fetch('https://open-api.affiliate.shopee.co.th/graphql', {
-      method: 'POST',
+    const cleanUrl = url.split('?')[0]
+    
+    const response = await fetch(cleanUrl, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${signature}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'th-TH,th;q=0.9',
       },
-      body: JSON.stringify({ query }),
     })
 
-    const data = await response.json()
-    const p = data?.data?.getProductDetail
+    const html = await response.text()
 
-    if (!p) return res.status(404).json({ error: 'ไม่พบสินค้าครับ' })
+    // ดึง JSON data จาก Shopee page
+    const dataMatch = html.match(/window\.__NEXT_DATA__\s*=\s*({.+?})<\/script>/s) ||
+                      html.match(/window\.pageData\s*=\s*({.+?});/s)
 
-    const productData = {
-      shopee_item_id: String(p.itemId),
-      name: p.itemName,
-      image_url: p.imageUrl,
-      price: p.priceMin,
-      commission_rate: p.commissionRate,
-      sales_count: p.sales || 0,
-      shop_name: p.shopName,
-      affiliate_link: p.affiliateLink,
-      updated_at: new Date().toISOString(),
+    let product = null
+
+    if (dataMatch) {
+      try {
+        const pageData = JSON.parse(dataMatch[1])
+        const itemData = pageData?.props?.pageProps?.initialData?.data?.productDetailData?.item ||
+                        pageData?.props?.pageProps?.data?.itemInfo?.item
+
+        if (itemData) {
+          product = {
+            shopee_item_id: String(itemData.itemid || itemData.item_id || ''),
+            name: itemData.name || '',
+            image_url: itemData.image
+              ? `https://cf.shopee.co.th/file/${itemData.image}`
+              : (itemData.images?.[0] ? `https://cf.shopee.co.th/file/${itemData.images[0]}` : ''),
+            price: itemData.price ? itemData.price / 100000 : 0,
+            original_price: itemData.price_before_discount ? itemData.price_before_discount / 100000 : 0,
+            commission_rate: 0,
+            sales_count: itemData.historical_sold || itemData.sold || 0,
+            shop_name: itemData.shop_name || '',
+            affiliate_link: url,
+          }
+        }
+      } catch (e) {
+        console.error('Parse error:', e)
+      }
     }
 
-    const { data: saved, error } = await supabase
-      .from('products')
-      .upsert(productData, { onConflict: 'shopee_item_id' })
-      .select()
-      .single()
+    // fallback: ดึงจาก meta tags
+    if (!product) {
+      const titleMatch = html.match(/<title>([^<]+)<\/title>/)
+      const imageMatch = html.match(/<meta property="og:image" content="([^"]+)"/)
+      const priceMatch = html.match(/<meta property="product:price:amount" content="([^"]+)"/)
 
-    if (error) {
-      console.error(error)
-      return res.status(500).json({ error: error.message })
+      product = {
+        shopee_item_id: String(Date.now()),
+        name: titleMatch ? titleMatch[1].replace(' | Shopee Thailand', '').trim() : 'สินค้าจาก Shopee',
+        image_url: imageMatch ? imageMatch[1] : '',
+        price: priceMatch ? parseFloat(priceMatch[1]) : 0,
+        original_price: 0,
+        commission_rate: 0,
+        sales_count: 0,
+        shop_name: '',
+        affiliate_link: url,
+      }
     }
 
-    return res.status(200).json({ product: saved })
+    return res.status(200).json({ product })
   } catch (e) {
     console.error(e)
-    return res.status(500).json({ error: e.message })
+    return res.status(500).json({ error: 'ดึงข้อมูลสินค้าไม่สำเร็จครับ: ' + e.message })
   }
 }
