@@ -106,7 +106,8 @@ export default function VideoMaker() {
     ctx.fillStyle = 'white'
     ctx.font = 'bold 48px sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText((product && product.name ? product.name : '').substring(0, 60), w / 2, 1750)
+    const name = product && product.name ? product.name.substring(0, 60) : ''
+    ctx.fillText(name, w / 2, 1750)
     ctx.textAlign = 'left'
     ctx.fillStyle = '#EE4D2D'
     ctx.font = 'bold 36px sans-serif'
@@ -270,7 +271,7 @@ export default function VideoMaker() {
               {rendering && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ background: '#f0f0f0', borderRadius: 8, height: 12, overflow: 'hidden' }}>
-                    <div style={{ background: '#EE4D2D', height: '100%', width: (progress + '%'), transition: 'width 0.3s' }} />
+                    <div style={{ background: '#EE4D2D', height: '100%', width: progress + '%', transition: 'width 0.3s' }} />
                   </div>
                   <p style={{ fontSize: 12, color: '#888', marginTop: 6, textAlign: 'center' }}>
                     {'กรุณารอสักครู่ อย่าปิดหน้าต่างครับ (' + progress + '%)'}
@@ -293,7 +294,7 @@ export default function VideoMaker() {
             />
             
               href={videoUrl}
-              download="shopee-affiliate-video.webm"
+              download="video.webm"
               style={{ display: 'block', background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 15, marginBottom: 8 }}
             >
               ดาวน์โหลดวิดีโอ
