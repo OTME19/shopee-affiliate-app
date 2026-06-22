@@ -199,15 +199,7 @@ export default function VideoMaker() {
       <div style={{ display: 'flex', marginBottom: 32 }}>
         {['ใส่ลิงก์สินค้า', 'สร้างวิดีโอ', 'ดาวน์โหลด'].map((s, i) => (
           <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%', margin: '0 auto 6px',
-              background: step >= i + 1 ? '#EE4D2D' : '#e0e0e0',
-              color: step >= i + 1 ? 'white' : '#999',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 700,
-            }}>
-              {i + 1}
-            </div>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', margin: '0 auto 6px', background: step >= i + 1 ? '#EE4D2D' : '#e0e0e0', color: step >= i + 1 ? 'white' : '#999', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>{i + 1}</div>
             <p style={{ fontSize: 12, color: step === i + 1 ? '#EE4D2D' : '#999' }}>{s}</p>
           </div>
         ))}
@@ -216,27 +208,14 @@ export default function VideoMaker() {
       {step === 1 && (
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>วางลิงก์สินค้า Shopee</h2>
-          <input
-            type="text"
-            placeholder="https://shopee.co.th/..."
-            value={shopeeUrl}
-            onChange={(e) => setShopeeUrl(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 14, marginBottom: 12 }}
-          />
-          <button
-            onClick={fetchProduct}
-            disabled={loading || !shopeeUrl}
-            style={{ background: '#EE4D2D', color: 'white', padding: '10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 14 }}
-          >
+          <input type="text" placeholder="https://shopee.co.th/..." value={shopeeUrl} onChange={(e) => setShopeeUrl(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 14, marginBottom: 12 }} />
+          <button onClick={fetchProduct} disabled={loading || !shopeeUrl} style={{ background: '#EE4D2D', color: 'white', padding: '10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 14 }}>
             {loading ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลสินค้า'}
           </button>
-
           {product && (
             <div style={{ marginTop: 20, padding: 16, background: '#fff8f7', borderRadius: 8, border: '1px solid #ffd5cc' }}>
               <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-                {product.image_url && (
-                  <img src={product.image_url} alt={product.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
-                )}
+                {product.image_url && (<img src={product.image_url} alt={product.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />)}
                 <div>
                   <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{product.name}</p>
                   <p style={{ color: '#EE4D2D', fontWeight: 700, fontSize: 16 }}>{'฿' + Number(product.price).toLocaleString()}</p>
@@ -244,27 +223,13 @@ export default function VideoMaker() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Script (แก้ไขได้):</p>
-                <textarea
-                  value={script}
-                  onChange={(e) => setScript(e.target.value)}
-                  placeholder="กด สร้าง Script อัตโนมัติ หรือพิมพ์เองได้เลยครับ"
-                  rows={5}
-                  style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, lineHeight: 1.6, resize: 'vertical' }}
-                />
+                <textarea value={script} onChange={(e) => setScript(e.target.value)} placeholder="กด สร้าง Script อัตโนมัติ หรือพิมพ์เองได้เลยครับ" rows={5} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, lineHeight: 1.6, resize: 'vertical' }} />
               </div>
-              <button
-                onClick={generateScript}
-                disabled={generating}
-                style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, marginBottom: 8, width: '100%' }}
-              >
+              <button onClick={generateScript} disabled={generating} style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, marginBottom: 8, width: '100%' }}>
                 {generating ? 'AI กำลังเขียน...' : 'สร้าง Script อัตโนมัติ'}
               </button>
               {script && (
-                <button
-                  onClick={renderVideo}
-                  disabled={rendering}
-                  style={{ background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 15 }}
-                >
+                <button onClick={renderVideo} disabled={rendering} style={{ background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 15 }}>
                   {rendering ? ('กำลังสร้างวิดีโอ... ' + progress + '%') : 'สร้างวิดีโอ 35 วิ'}
                 </button>
               )}
@@ -273,9 +238,7 @@ export default function VideoMaker() {
                   <div style={{ background: '#f0f0f0', borderRadius: 8, height: 12, overflow: 'hidden' }}>
                     <div style={{ background: '#EE4D2D', height: '100%', width: progress + '%', transition: 'width 0.3s' }} />
                   </div>
-                  <p style={{ fontSize: 12, color: '#888', marginTop: 6, textAlign: 'center' }}>
-                    {'กรุณารอสักครู่ อย่าปิดหน้าต่างครับ (' + progress + '%)'}
-                  </p>
+                  <p style={{ fontSize: 12, color: '#888', marginTop: 6, textAlign: 'center' }}>{'กรุณารอสักครู่ อย่าปิดหน้าต่างครับ (' + progress + '%)'}</p>
                 </div>
               )}
             </div>
@@ -287,46 +250,24 @@ export default function VideoMaker() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="card" style={{ textAlign: 'center' }}>
             <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>วิดีโอพร้อมแล้วครับ!</p>
-            <video
-              src={videoUrl}
-              controls
-              style={{ width: '100%', maxHeight: 400, borderRadius: 12, background: '#000', marginBottom: 16 }}
-            />
-            
-              href={videoUrl}
-              download="video.webm"
-              style={{ display: 'block', background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 15, marginBottom: 8 }}
-            >
-              ดาวน์โหลดวิดีโอ
-            </a>
-            <button
-              onClick={() => { setStep(1); setVideoUrl(null); setProduct(null); setScript(''); setShopeeUrl('') }}
-              style={{ background: '#f5f5f5', color: '#333', padding: '10px', borderRadius: 8, border: 'none', cursor: 'pointer', width: '100%', fontSize: 14 }}
-            >
-              สร้างวิดีโอใหม่
-            </button>
+            <video src={videoUrl} controls style={{ width: '100%', maxHeight: 400, borderRadius: 12, background: '#000', marginBottom: 16 }} />
+            <a href={videoUrl} download="video.webm" style={{ display: 'block', background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 15, marginBottom: 8 }}>ดาวน์โหลดวิดีโอ</a>
+            <button onClick={() => { setStep(1); setVideoUrl(null); setProduct(null); setScript(''); setShopeeUrl('') }} style={{ background: '#f5f5f5', color: '#333', padding: '10px', borderRadius: 8, border: 'none', cursor: 'pointer', width: '100%', fontSize: 14 }}>สร้างวิดีโอใหม่</button>
           </div>
-
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600 }}>Caption</h2>
-              <button onClick={() => copyText(caption, 'caption')} style={{ background: copied === 'caption' ? '#e8f5e9' : '#f5f5f5', color: copied === 'caption' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-                {copied === 'caption' ? 'Copied!' : 'Copy'}
-              </button>
+              <button onClick={() => copyText(caption, 'caption')} style={{ background: copied === 'caption' ? '#e8f5e9' : '#f5f5f5', color: copied === 'caption' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>{copied === 'caption' ? 'Copied!' : 'Copy'}</button>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: '#444' }}>{caption}</p>
           </div>
-
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600 }}>Hashtags</h2>
-              <button onClick={() => copyText(hashtags, 'hashtags')} style={{ background: copied === 'hashtags' ? '#e8f5e9' : '#f5f5f5', color: copied === 'hashtags' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-                {copied === 'hashtags' ? 'Copied!' : 'Copy'}
-              </button>
+              <button onClick={() => copyText(hashtags, 'hashtags')} style={{ background: copied === 'hashtags' ? '#e8f5e9' : '#f5f5f5', color: copied === 'hashtags' ? '#2e7d32' : '#333', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>{copied === 'hashtags' ? 'Copied!' : 'Copy'}</button>
             </div>
             <p style={{ fontSize: 13, color: '#EE4D2D', lineHeight: 1.7 }}>{hashtags}</p>
           </div>
-
           <div className="card" style={{ background: '#fff8f7', border: '1px solid #ffd5cc' }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>วิธีโพสต์ใน Shopee Video Feed</h2>
             <ol style={{ fontSize: 13, color: '#555', lineHeight: 2, paddingLeft: 20 }}>
