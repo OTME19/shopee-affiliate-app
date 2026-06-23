@@ -14,6 +14,7 @@ export default function VideoMaker() {
   const [step, setStep] = useState(1)
   const [currentFrame, setCurrentFrame] = useState(0)
   const [copied, setCopied] = useState('')
+  const [aiProvider, setAiProvider] = useState('gemini')
 
   async function fetchProduct() {
     if (!shopeeUrl) return
@@ -30,9 +31,9 @@ export default function VideoMaker() {
     if (!product) return
     setGenerating(true)
     try {
-      const res = await fetch('/api/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product }) })
+      const res = await fetch('/api/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product, aiProvider }) })
       const data = await res.json()
-      if (data.script) { setScript(data.script); setCaption(data.caption); setHashtags(data.hashtags); setStep(2) }
+      if (data.script) { setScript(data.script); setCaption(data.caption); setHashtags(data.hashtags); setStep(2) } else { alert('เกิดข้อผิดพลาด: ' + data.error) }
     } catch (e) { alert('เกิดข้อผิดพลาดครับ') }
     setGenerating(false)
   }
@@ -159,6 +160,7 @@ export default function VideoMaker() {
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
       <a href="/" style={{ fontSize: 13, color: '#888', textDecoration: 'none' }}>กลับหน้าหลัก</a>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginTop: 8, marginBottom: 24 }}>สร้างวิดีโอ</h1>
+
       <div style={{ display: 'flex', marginBottom: 32 }}>
         {['ใส่ลิงก์สินค้า', 'สร้างวิดีโอ', 'ดาวน์โหลด'].map((s, i) => (
           <div key={i} style={{ flex: 1, textAlign: 'center' }}>
@@ -167,13 +169,30 @@ export default function VideoMaker() {
           </div>
         ))}
       </div>
+
       {step === 1 && (
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>วางลิงก์สินค้า Shopee</h2>
           <input type="text" placeholder="https://shopee.co.th/..." value={shopeeUrl} onChange={(e) => setShopeeUrl(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 14, marginBottom: 12 }} />
-          <button onClick={fetchProduct} disabled={loading || !shopeeUrl} style={{ background: '#EE4D2D', color: 'white', padding: '10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 14 }}>{loading ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลสินค้า'}</button>
+          <button onClick={fetchProduct} disabled={loading || !shopeeUrl} style={{ background: '#EE4D2D', color: 'white', padding: '10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 14, marginBottom: 16 }}>{loading ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลสินค้า'}</button>
+
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>เลือก AI สำหรับเขียน Script:</p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[
+                { value: 'gemini', label: 'Gemini', desc: 'Google (ฟรี)', color: '#4285f4' },
+                { value: 'claude', label: 'Claude', desc: 'Anthropic ($)', color: '#EE4D2D' },
+              ].map((ai) => (
+                <div key={ai.value} onClick={() => setAiProvider(ai.value)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: aiProvider === ai.value ? ('2px solid ' + ai.color) : '2px solid #e0e0e0', cursor: 'pointer', textAlign: 'center', background: aiProvider === ai.value ? (ai.color + '10') : 'white', transition: 'all 0.2s' }}>
+                  <p style={{ fontWeight: 700, fontSize: 15, color: aiProvider === ai.value ? ai.color : '#333', marginBottom: 4 }}>{ai.label}</p>
+                  <p style={{ fontSize: 12, color: '#888' }}>{ai.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {product && (
-            <div style={{ marginTop: 20, padding: 16, background: '#fff8f7', borderRadius: 8, border: '1px solid #ffd5cc' }}>
+            <div style={{ marginTop: 8, padding: 16, background: '#fff8f7', borderRadius: 8, border: '1px solid #ffd5cc' }}>
               <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
                 {product.image_url && <img src={product.image_url} alt={product.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />}
                 <div>
@@ -182,7 +201,7 @@ export default function VideoMaker() {
                 </div>
               </div>
               <textarea value={script} onChange={(e) => setScript(e.target.value)} placeholder="กด สร้าง Script อัตโนมัติ หรือพิมพ์เองได้เลยครับ" rows={5} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, lineHeight: 1.6, resize: 'vertical', marginBottom: 8 }} />
-              <button onClick={generateScript} disabled={generating} style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, marginBottom: 8, width: '100%' }}>{generating ? 'AI กำลังเขียน...' : 'สร้าง Script อัตโนมัติ'}</button>
+              <button onClick={generateScript} disabled={generating} style={{ background: '#333', color: 'white', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, marginBottom: 8, width: '100%' }}>{generating ? ('AI กำลังเขียน (' + (aiProvider === 'gemini' ? 'Gemini' : 'Claude') + ')...') : ('สร้าง Script ด้วย ' + (aiProvider === 'gemini' ? 'Gemini' : 'Claude'))}</button>
               {script && <button onClick={renderVideo} disabled={rendering} style={{ background: '#EE4D2D', color: 'white', padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, width: '100%', fontSize: 15 }}>{rendering ? ('กำลังสร้างวิดีโอ... ' + progress + '%') : 'สร้างวิดีโอ 35 วิ'}</button>}
               {rendering && (
                 <div style={{ marginTop: 12 }}>
@@ -196,6 +215,7 @@ export default function VideoMaker() {
           )}
         </div>
       )}
+
       {step === 3 && videoUrl && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="card" style={{ textAlign: 'center' }}>
@@ -230,6 +250,7 @@ export default function VideoMaker() {
           </div>
         </div>
       )}
+
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   )
