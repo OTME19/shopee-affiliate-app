@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 ราคา: ฿${product.price}
 ร้าน: ${product.shop_name || 'Shopee'}
 
-ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่น ห้ามมี markdown:
+ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่นนอกจาก JSON ห้ามใช้ markdown:
 {"script":"script วิดีโอ 35 วินาที ภาษาพูดธรรมชาติ มี hook ดึงดูด จุดเด่นสินค้า และ call to action","caption":"caption สำหรับโพสต์ไม่เกิน 150 ตัวอักษร","hashtags":"hashtag 8-10 ตัว คั่นด้วยช่องว่าง"}`
 
   try {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
     if (aiProvider === 'gemini') {
       const response = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + process.env.GEMINI_API_KEY,
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + process.env.GEMINI_API_KEY,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -27,13 +27,12 @@ export default async function handler(req, res) {
             generationConfig: {
               temperature: 0.7,
               maxOutputTokens: 1024,
-              responseMimeType: 'application/json',
             },
           }),
         }
       )
       const data = await response.json()
-      console.log('Gemini response:', JSON.stringify(data))
+      console.log('Gemini raw:', JSON.stringify(data).substring(0, 500))
       text = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
     } else if (aiProvider === 'claude') {
@@ -60,7 +59,10 @@ export default async function handler(req, res) {
     if (!text) return res.status(500).json({ error: 'AI ไม่ส่ง response กลับมาครับ' })
 
     const clean = text.replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(clean)
+    const firstBrace = clean.indexOf('{')
+    const lastBrace = clean.lastIndexOf('}')
+    const jsonOnly = clean.substring(firstBrace, lastBrace + 1)
+    const parsed = JSON.parse(jsonOnly)
     return res.status(200).json(parsed)
 
   } catch (e) {
