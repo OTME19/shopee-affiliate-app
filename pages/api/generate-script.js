@@ -10,12 +10,8 @@ export default async function handler(req, res) {
 ราคา: ฿${product.price}
 ร้าน: ${product.shop_name || 'Shopee'}
 
-สร้างสิ่งต่อไปนี้เป็น JSON format เท่านั้น ไม่ต้องมีข้อความอื่น:
-{
-  "script": "script วิดีโอ 35 วินาที ภาษาพูดธรรมชาติ มี hook ดึงดูด 5 วิแรก จุดเด่นสินค้า และ call to action",
-  "caption": "caption สำหรับโพสต์ใน Shopee Video Feed ไม่เกิน 150 ตัวอักษร",
-  "hashtags": "hashtag ภาษาไทยและอังกฤษ 8-10 ตัว คั่นด้วยช่องว่าง"
-}`
+ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่น ห้ามมี markdown:
+{"script":"script วิดีโอ 35 วินาที ภาษาพูดธรรมชาติ มี hook ดึงดูด จุดเด่นสินค้า และ call to action","caption":"caption สำหรับโพสต์ไม่เกิน 150 ตัวอักษร","hashtags":"hashtag 8-10 ตัว คั่นด้วยช่องว่าง"}`
 
   try {
     let text = ''
@@ -28,11 +24,16 @@ export default async function handler(req, res) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1024,
+              responseMimeType: 'application/json',
+            },
           }),
         }
       )
       const data = await response.json()
+      console.log('Gemini response:', JSON.stringify(data))
       text = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
     } else if (aiProvider === 'claude') {
@@ -45,7 +46,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
+          max_tokens: 1024,
           messages: [{ role: 'user', content: prompt }],
         }),
       })
@@ -56,12 +57,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'กรุณาเลือก AI ครับ' })
     }
 
+    if (!text) return res.status(500).json({ error: 'AI ไม่ส่ง response กลับมาครับ' })
+
     const clean = text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(clean)
     return res.status(200).json(parsed)
 
   } catch (e) {
-    console.error(e)
+    console.error('Error:', e.message)
     return res.status(500).json({ error: 'สร้าง script ไม่สำเร็จครับ: ' + e.message })
   }
 }
